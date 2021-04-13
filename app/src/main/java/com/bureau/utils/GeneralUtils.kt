@@ -8,10 +8,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract.PhoneLookup
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.bureau.services.NumberDetectionService
-import com.bureau.services.ScreeningService
 
 
 /**
@@ -40,16 +38,7 @@ fun isMyServiceRunning(
     return false
 }
 
-val phoneCallPermission = arrayOf(
-    Manifest.permission.READ_CONTACTS,
-    Manifest.permission.CALL_PHONE,
-    Manifest.permission.READ_CALL_LOG,
-    Manifest.permission.READ_PHONE_STATE,
-    Manifest.permission.READ_SMS,
-    Manifest.permission.RECEIVE_BOOT_COMPLETED,
-    Manifest.permission.PROCESS_OUTGOING_CALLS,
-    Manifest.permission.ACCESS_NETWORK_STATE
-)
+val phoneCallPermission = arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.CALL_PHONE, Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_BOOT_COMPLETED, Manifest.permission.PROCESS_OUTGOING_CALLS, Manifest.permission.ACCESS_NETWORK_STATE)
 
 fun hasPermissions(
     context: Context?,
@@ -71,20 +60,14 @@ fun hasPermissions(
 
 fun contactExists(context: Context, number: String?): Boolean {
     /// number is the phone number
-    val lookupUri = Uri.withAppendedPath(
-        PhoneLookup.CONTENT_FILTER_URI,
-        Uri.encode(number)
-    )
-    val mPhoneNumberProjection =
-        arrayOf(PhoneLookup._ID, PhoneLookup.NUMBER, PhoneLookup.DISPLAY_NAME)
+    val lookupUri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number))
+    val mPhoneNumberProjection = arrayOf(PhoneLookup._ID, PhoneLookup.NUMBER, PhoneLookup.DISPLAY_NAME)
     val cur = context.contentResolver.query(lookupUri, mPhoneNumberProjection, null, null, null)
-    try {
-        if (cur!!.moveToFirst()) {
-            cur.close()
+    cur.use { cursor ->
+        if (cursor!!.moveToFirst()) {
+            cursor.close()
             return true
         }
-    } finally {
-        cur?.close()
     }
     return false
 }
@@ -98,13 +81,5 @@ fun startNumberDetectionService(context: Context, number: String? = null) {
                 })
             }
         )
-    }
-}
-
-fun startScreeningService(context: Context) {
-    Log.e("TAG","startScreeningService() --> ")
-    if (!isMyServiceRunning(context, ScreeningService::class.java)) {
-        Log.e("TAG","startScreeningService() --> enter")
-        context.startService(Intent(context, ScreeningService::class.java))
     }
 }

@@ -19,6 +19,7 @@ class SmsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         val bundle = intent?.extras
+        // get number from message.
         try {
             if (bundle != null) {
                 val pdusObj : Array<Any>? = bundle["pdus"] as Array<Any>?
