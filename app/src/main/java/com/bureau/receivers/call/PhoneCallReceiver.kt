@@ -1,11 +1,13 @@
 package com.bureau.receivers.call
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
+import com.bureau.utils.hasPermissions
 import java.util.*
 
 
@@ -23,37 +25,37 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
             : String? = null
 
     override fun onReceive(context: Context, intent: Intent) {
-
-        // We listen to two intents. The new outgoing call only tells us of an outgoing call.
-        // We use it to get the number.
-        if (intent.action == "android.intent.action.NEW_OUTGOING_CALL") {
-            savedNumber = intent.extras!!.getString("android.intent.extra.PHONE_NUMBER")
-        } else {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                val stateStr = intent.extras!!.getString(TelephonyManager.EXTRA_STATE)
-                val number = intent.extras!!.getString(TelephonyManager.EXTRA_INCOMING_NUMBER)
-                var state = 0
-                when (stateStr) {
-                    TelephonyManager.EXTRA_STATE_IDLE -> {
-                        state = TelephonyManager.CALL_STATE_IDLE
-                    }
-                    TelephonyManager.EXTRA_STATE_OFFHOOK -> {
-                        state = TelephonyManager.CALL_STATE_OFFHOOK
-                    }
-                    TelephonyManager.EXTRA_STATE_RINGING -> {
-                        state = TelephonyManager.CALL_STATE_RINGING
-                    }
-                }
-                onCustomCallStateChanged(context, state, number)
+        if (hasPermissions(context, arrayOf(Manifest.permission.READ_PHONE_STATE))) {
+            // We listen to two intents. The new outgoing call only tells us of an outgoing call.
+            // We use it to get the number.
+            if (intent.action == "android.intent.action.NEW_OUTGOING_CALL") {
+                savedNumber = intent.extras!!.getString("android.intent.extra.PHONE_NUMBER")
             } else {
-                // Android 9+
-                val telephony =
-                    context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-                telephony.listen(object : PhoneStateListener() {
-                    override fun onCallStateChanged(state: Int, number: String) {
-                        onCustomCallStateChanged(context, state, number)
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    val stateStr = intent.extras!!.getString(TelephonyManager.EXTRA_STATE)
+                    val number = intent.extras!!.getString(TelephonyManager.EXTRA_INCOMING_NUMBER)
+                    var state = 0
+                    when (stateStr) {
+                        TelephonyManager.EXTRA_STATE_IDLE -> {
+                            state = TelephonyManager.CALL_STATE_IDLE
+                        }
+                        TelephonyManager.EXTRA_STATE_OFFHOOK -> {
+                            state = TelephonyManager.CALL_STATE_OFFHOOK
+                        }
+                        TelephonyManager.EXTRA_STATE_RINGING -> {
+                            state = TelephonyManager.CALL_STATE_RINGING
+                        }
                     }
-                }, PhoneStateListener.LISTEN_CALL_STATE)
+                    onCustomCallStateChanged(context, state, number)
+                } else {
+                    // Android 9+
+                    val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+                    telephony.listen(object : PhoneStateListener() {
+                        override fun onCallStateChanged(state: Int, number: String) {
+                            onCustomCallStateChanged(context, state, number)
+                        }
+                    }, PhoneStateListener.LISTEN_CALL_STATE)
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.bureau
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -13,28 +14,27 @@ import com.bureau.utils.*
 class MainActivity : AppCompatActivity() {
 
     private var marshMellowHelper: MarshMellowHelper? = null
-    private val PERMISSIONS_REQUEST_CODE = 10003
+    private var preferenceManager: PreferenceManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        preferenceManager = PreferenceManager(getSharedPreferences(MY_PREFERENCE, Context.MODE_PRIVATE))
         // Firstly, we check READ_CALL_LOG permission
         if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.READ_CALL_LOG) !== PackageManager.PERMISSION_GRANTED) {
             // We do not have this permission. Let's ask the user
             ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.READ_CALL_LOG), MY_PERMISSIONS_REQUEST_READ_CALL_LOG)
         }
         initRequestPermission()
+        preferenceManager?.setValue(PREF_USER_MOBILE,"12345")
         callSmsReceive = object : CallSmsReceiverInterface {
             override fun detectedNumber(number: String?) {
-                Log.e("TAG", "detectedNumber() number--> $number")
             }
 
             override fun spam() {
-                Log.e("TAG", "spam() --> ")
             }
 
             override fun aggravated() {
-                Log.e("TAG", "aggravated() --> ")
             }
         }
     }
@@ -84,7 +84,6 @@ class MainActivity : AppCompatActivity() {
             MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission granted!
-                    Log.e("TAG", "PROCESS_OUTGOING_CALLS granted!")
                 }
             }
         }

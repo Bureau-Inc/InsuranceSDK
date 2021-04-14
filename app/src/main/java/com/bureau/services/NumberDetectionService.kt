@@ -6,14 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
-import android.telephony.TelephonyManager
 import android.widget.Toast
 import com.bureau.models.callFilter.request.CallFilterRequest
 import com.bureau.network.APIClient
-import com.bureau.utils.KEY_NUMBER
-import com.bureau.utils.callSmsReceive
-import com.bureau.utils.contactExists
-import com.bureau.utils.isMyServiceRunning
+import com.bureau.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,23 +34,17 @@ class NumberDetectionService : Service() {
     @SuppressLint("MissingPermission", "HardwareIds")
     private fun identifyNumber(intent: Intent?) {
         val number = intent?.getStringExtra(KEY_NUMBER)
+        val usersPhoneNumber = intent?.getStringExtra(PREF_USER_MOBILE)
         if (number != null && contactExists(this, number)) {
             Toast.makeText(this, "VALID number --> $number", Toast.LENGTH_LONG).show()
             callSmsReceive?.detectedNumber(number)
             callSmsReceive?.aggravated()
         } else {
-            // number is not contact list (check for number By API Call)
-            // get user's mobile number
-            val telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            var usersPhoneNumber = telephonyManager.line1Number
-            if (usersPhoneNumber.isNullOrEmpty()){
-                usersPhoneNumber = "12345"
-            }
             CoroutineScope(Dispatchers.Main).launch {
                 try {
                     val apiCall = APIClient(this@NumberDetectionService).getClient().callFilterApi(CallFilterRequest(usersPhoneNumber, number))
                     if (apiCall.isSuccessful) {
-                        Toast.makeText(this@NumberDetectionService, "ApI Success --> ${apiCall.body()?.warn} ", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@NumberDetectionService, "ApI Success --> ${apiCall.body()?.reason} ", Toast.LENGTH_LONG).show()
                     } else {
                         Toast.makeText(this@NumberDetectionService, "ApI Failure --> ${apiCall.body()}", Toast.LENGTH_LONG).show()
                     }

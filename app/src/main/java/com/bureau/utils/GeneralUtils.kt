@@ -38,7 +38,7 @@ fun isMyServiceRunning(
     return false
 }
 
-val phoneCallPermission = arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.CALL_PHONE, Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_BOOT_COMPLETED, Manifest.permission.PROCESS_OUTGOING_CALLS, Manifest.permission.ACCESS_NETWORK_STATE)
+val phoneCallPermission = arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.CALL_PHONE, Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_BOOT_COMPLETED, Manifest.permission.PROCESS_OUTGOING_CALLS, Manifest.permission.RECEIVE_SMS)
 
 fun hasPermissions(
     context: Context?,
@@ -72,12 +72,13 @@ fun contactExists(context: Context, number: String?): Boolean {
     return false
 }
 
-fun startNumberDetectionService(context: Context, number: String? = null) {
+fun startNumberDetectionService(context: Context, number: String? = null, userPhoneNumber : String? = null) {
     if (!isMyServiceRunning(context, NumberDetectionService::class.java)) {
         NumberDetectionService.startService(
             context, Intent(context, NumberDetectionService::class.java).apply {
                 putExtras(Bundle().apply {
                     putString(KEY_NUMBER, number)
+                    putString(PREF_USER_MOBILE, userPhoneNumber)
                 })
             }
         )
