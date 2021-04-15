@@ -11,7 +11,9 @@ class CallReceiver : PhoneCallReceiver() {
 
     // triggered for incoming calls
     override fun onIncomingCallStarted(context: Context?, number: String?, start: Date?) {
-        context?.let { startNumberDetectionService(it, number) }
+        context?.let {
+            startNumberDetectionService(context = it, number = number, isSms = false, message = null)
+        }
     }
 
     override fun onOutgoingCallStarted(context: Context?, number: String?, start: Date?) {

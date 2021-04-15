@@ -16,12 +16,13 @@ import com.bureau.services.NumberDetectionService
  * Created by Abhin.
  */
 
-var callSmsReceive: CallSmsReceiverInterface? = null
 
 interface CallSmsReceiverInterface{
     fun detectedNumber(number: String? = null)
     fun spam()
     fun aggravated()
+    fun warning()
+    fun validNumber(number: String? = null)
 }
 
 // check the service are running or not
@@ -72,15 +73,14 @@ fun contactExists(context: Context, number: String?): Boolean {
     return false
 }
 
-fun startNumberDetectionService(context: Context, number: String? = null, userPhoneNumber : String? = null) {
+fun startNumberDetectionService(context: Context, number: String? = null, isSms: Boolean, message: String?) {
     if (!isMyServiceRunning(context, NumberDetectionService::class.java)) {
-        NumberDetectionService.startService(
-            context, Intent(context, NumberDetectionService::class.java).apply {
-                putExtras(Bundle().apply {
-                    putString(KEY_NUMBER, number)
-                    putString(PREF_USER_MOBILE, userPhoneNumber)
-                })
-            }
-        )
+        NumberDetectionService.startService(context, Intent(context, NumberDetectionService::class.java).apply {
+            putExtras(Bundle().apply {
+                putString(KEY_NUMBER, number)
+                putBoolean(KEY_IS_SMS, isSms)
+                putString(KEY_SMS_BODY, message)
+            })
+        })
     }
 }

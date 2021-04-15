@@ -4,10 +4,10 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bureau.services.NumberDetectionService
 import com.bureau.utils.*
 
 @Suppress("DEPRECATED_IDENTITY_EQUALS")
@@ -26,8 +26,7 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.READ_CALL_LOG), MY_PERMISSIONS_REQUEST_READ_CALL_LOG)
         }
         initRequestPermission()
-        preferenceManager?.setValue(PREF_USER_MOBILE,"12345")
-        callSmsReceive = object : CallSmsReceiverInterface {
+        NumberDetectionService.init("12345", object : CallSmsReceiverInterface {
             override fun detectedNumber(number: String?) {
             }
 
@@ -36,7 +35,13 @@ class MainActivity : AppCompatActivity() {
 
             override fun aggravated() {
             }
-        }
+
+            override fun warning() {
+            }
+
+            override fun validNumber(number: String?) {
+            }
+        })
     }
 
 

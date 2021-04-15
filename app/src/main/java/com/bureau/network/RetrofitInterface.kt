@@ -1,7 +1,8 @@
 package com.bureau.network
 
 import com.bureau.models.callFilter.request.CallFilterRequest
-import com.bureau.models.callFilter.response.CallFilterResponse
+import com.bureau.models.callFilter.request.SmsFilterRequest
+import com.bureau.models.callFilter.response.CommonFilterResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -13,6 +14,9 @@ import retrofit2.http.POST
 interface RetrofitInterface {
 
     @POST("androidapi/callfilter")
-    suspend fun callFilterApi(@Body mCallFilterRequest: CallFilterRequest): Response<CallFilterResponse>
+    suspend fun callFilterApi(@Body requestBody: CallFilterRequest): Response<CommonFilterResponse>
+
+    @POST("androidapi/smsfilter")
+    suspend fun smsFilterApi(@Body requestBody: SmsFilterRequest): Response<CommonFilterResponse>
 }
 
