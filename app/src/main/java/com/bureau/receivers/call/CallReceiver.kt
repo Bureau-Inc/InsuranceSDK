@@ -1,6 +1,7 @@
 package com.bureau.receivers.call
 
 import android.content.Context
+import com.bureau.utils.ApiCallType
 import com.bureau.utils.startNumberDetectionService
 import java.util.*
 
@@ -12,7 +13,7 @@ class CallReceiver : PhoneCallReceiver() {
     // triggered for incoming calls
     override fun onIncomingCallStarted(context: Context?, number: String?, start: Date?) {
         context?.let {
-            startNumberDetectionService(context = it, number = number, isSms = false, message = null)
+            startNumberDetectionService(context = it, number = number, apiCallType = ApiCallType.CALL.name, message = null)
         }
     }
 

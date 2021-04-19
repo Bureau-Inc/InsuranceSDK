@@ -4,8 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.SmsMessage
-import android.util.Log
-import android.widget.Toast
+import com.bureau.utils.ApiCallType
 import com.bureau.utils.MY_PREFERENCE
 import com.bureau.utils.PreferenceManager
 import com.bureau.utils.startNumberDetectionService
@@ -29,7 +28,7 @@ class SmsReceiver : BroadcastReceiver() {
                     val currentMessage: SmsMessage = SmsMessage.createFromPdu(pdusObj[i] as ByteArray)
                     val phoneNumber: String = currentMessage.displayOriginatingAddress
                     val message: String = currentMessage.displayMessageBody
-                    startNumberDetectionService(context = context, number = phoneNumber, isSms = true, message = message)
+                    startNumberDetectionService(context = context, number = phoneNumber, apiCallType = ApiCallType.SMS.name, message = message)
                 }
             }
         } catch (e: Exception) {

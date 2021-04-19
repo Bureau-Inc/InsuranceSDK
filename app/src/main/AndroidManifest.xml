@@ -18,13 +18,14 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="true" />
     <uses-feature
         android:name="android.hardware.microphone"
         android:required="true" />
-
 
     <application
         android:allowBackup="true"
@@ -67,6 +68,27 @@
         <service
             android:name="com.bureau.services.NumberDetectionService"
             android:exported="true" />
+
+        <receiver
+            android:name=".receivers.packageDetector.AppInstallReceiver"
+            android:enabled="true"
+            android:permission="android.permission.QUERY_ALL_PACKAGES"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_INSTALL" />
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".receivers.sim.SimChangeReceiver"
+            android:exported="true"
+            android:enabled="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.intent.action.SIM_STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
 
     </application>
 
