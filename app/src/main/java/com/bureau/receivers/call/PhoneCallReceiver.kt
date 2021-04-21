@@ -13,6 +13,7 @@ import java.util.*
 
 /**
  * Created by Abhin.
+ * PhoneCallReceiver works for receive all the broadcast about the calls, like incoming, outgoing, missed calls
  */
 abstract class PhoneCallReceiver : BroadcastReceiver() {
 
@@ -24,6 +25,9 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
     private var savedNumber // because the passed incoming is only valid in ringing
             : String? = null
 
+    /**
+     * This will triggered when any broadcast fired by system
+     */
     override fun onReceive(context: Context, intent: Intent) {
         if (hasPermissions(context, arrayOf(Manifest.permission.READ_PHONE_STATE))) {
             // We listen to two intents. The new outgoing call only tells us of an outgoing call.
@@ -31,6 +35,7 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
             if (intent.action == "android.intent.action.NEW_OUTGOING_CALL") {
                 savedNumber = intent.extras!!.getString("android.intent.extra.PHONE_NUMBER")
             } else {
+                //Check if OS version is less then 9, we have to manually get the state of call
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                     val stateStr = intent.extras!!.getString(TelephonyManager.EXTRA_STATE)
                     val number = intent.extras!!.getString(TelephonyManager.EXTRA_INCOMING_NUMBER)
@@ -46,12 +51,14 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
                             state = TelephonyManager.CALL_STATE_RINGING
                         }
                     }
+                    //Calling the stat changed
                     onCustomCallStateChanged(context, state, number)
                 } else {
-                    // Android 9+
+                    // Android 9+, we can get state of call by an overridden method
                     val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
                     telephony.listen(object : PhoneStateListener() {
                         override fun onCallStateChanged(state: Int, number: String) {
+                            //Calling the state changed
                             onCustomCallStateChanged(context, state, number)
                         }
                     }, PhoneStateListener.LISTEN_CALL_STATE)
@@ -71,47 +78,45 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
 
     protected abstract fun onMissedCall(context: Context?, number: String?, missed: Date?)
 
-    // Deals with actual events
-
-    // Deals with actual events
-    // Incoming call - goes from IDLE to RINGING when it rings, to OFFHOOK when it's answered, to IDLE when its hung up
-    // Outgoing call - goes from IDLE to OFFHOOK when it dials out, to IDLE when hung up
-    open fun onCustomCallStateChanged(
-        context: Context?,
-        state: Int,
-        number: String?
-    ) {
+    /** Deals with actual events
+     * Incoming call - goes from IDLE to RINGING when it rings, to OFFHOOK when it's answered, to IDLE when its hung up
+     * Outgoing call - goes from IDLE to OFFHOOK when it dials out, to IDLE when hung up
+     */
+    open fun onCustomCallStateChanged(context: Context?, state: Int, number: String?) {
         if (lastState == state) {
             // No change, debounce extras
             return
         }
         when (state) {
+            // Execute when call state is ringing
             TelephonyManager.CALL_STATE_RINGING -> {
                 isIncoming = true
                 callStartTime = Date()
                 savedNumber = number
-                //                Log.e("TAG", "number >>$number")
+                // Call on incoming call start
                 onIncomingCallStarted(context, number, callStartTime)
             }
-            TelephonyManager.CALL_STATE_OFFHOOK ->                 // Transition of ringing->offhook are pickups of incoming calls. Nothing done on them
-                if (lastState != TelephonyManager.CALL_STATE_RINGING) {
-                    isIncoming = false
-                    callStartTime = Date()
-                    onOutgoingCallStarted(context, savedNumber, callStartTime)
+
+            // Transition of ringing->offhook are pickups of incoming calls. Nothing done on them
+            TelephonyManager.CALL_STATE_OFFHOOK -> if (lastState != TelephonyManager.CALL_STATE_RINGING) {
+                isIncoming = false
+                callStartTime = Date()
+                onOutgoingCallStarted(context, savedNumber, callStartTime)
+            }
+
+            // Went to idle - this is the end of a call.  What type depends on previous state(s)
+            TelephonyManager.CALL_STATE_IDLE -> when {
+                lastState == TelephonyManager.CALL_STATE_RINGING -> {
+                    // Ring but no pickup - a miss
+                    onMissedCall(context, savedNumber, callStartTime)
                 }
-            TelephonyManager.CALL_STATE_IDLE ->                 // Went to idle - this is the end of a call.  What type depends on previous state(s)
-                when {
-                    lastState == TelephonyManager.CALL_STATE_RINGING -> {
-                        // Ring but no pickup - a miss
-                        onMissedCall(context, savedNumber, callStartTime)
-                    }
-                    isIncoming -> {
-                        onIncomingCallEnded(context, savedNumber, callStartTime, Date())
-                    }
-                    else -> {
-                        onOutgoingCallEnded(context, savedNumber, callStartTime, Date())
-                    }
+                isIncoming -> {
+                    onIncomingCallEnded(context, savedNumber, callStartTime, Date())
                 }
+                else -> {
+                    onOutgoingCallEnded(context, savedNumber, callStartTime, Date())
+                }
+            }
         }
         lastState = state
     }

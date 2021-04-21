@@ -14,6 +14,9 @@ import java.util.concurrent.TimeUnit
  */
 open class NetworkInterceptor(context: Context) : Interceptor {
     private val appContext = context.applicationContext
+    /**
+     * Overridden method for intercept
+     */
     override fun intercept(chain: Interceptor.Chain): Response = chain.run {
         val request: Request
         val cc: CacheControl = if (!isInternetAvailable(appContext)) {

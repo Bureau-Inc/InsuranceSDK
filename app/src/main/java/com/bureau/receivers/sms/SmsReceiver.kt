@@ -12,6 +12,7 @@ import com.bureau.utils.startNumberDetectionService
 
 /**
  * Created by Abhin.
+ * SmsReceiver is used to get event on any SMS is coming
  */
 
 class SmsReceiver : BroadcastReceiver() {
@@ -25,9 +26,13 @@ class SmsReceiver : BroadcastReceiver() {
             if (bundle != null) {
                 val pdusObj: Array<Any>? = bundle["pdus"] as Array<Any>?
                 for (i in pdusObj!!.indices) {
+                    //Get current sms
                     val currentMessage: SmsMessage = SmsMessage.createFromPdu(pdusObj[i] as ByteArray)
+                    //Get current sms number
                     val phoneNumber: String = currentMessage.displayOriginatingAddress
+                    //Get sms body
                     val message: String = currentMessage.displayMessageBody
+                    // Starting the service to get the valid or invalid number
                     startNumberDetectionService(context = context, number = phoneNumber, apiCallType = ApiCallType.SMS.name, message = message)
                 }
             }

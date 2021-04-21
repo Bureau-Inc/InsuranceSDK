@@ -11,9 +11,10 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract.PhoneLookup
 import androidx.core.app.ActivityCompat
+import com.bureau.models.packageDetectorHelper.AllInstalledAppResponse
 import com.bureau.models.packageDetectorHelper.AppList
 import com.bureau.models.packageDetectorHelper.InstalledAppRequest
-import com.bureau.services.NumberDetectionService
+import com.bureau.services.ValidationService
 
 
 /**
@@ -21,13 +22,6 @@ import com.bureau.services.NumberDetectionService
  */
 
 
-interface CallSmsReceiverInterface{
-    fun detectedNumber(number: String? = null)
-    fun spam()
-    fun aggravated()
-    fun warning()
-    fun validNumber(number: String? = null)
-}
 
 // check the service are running or not
 fun isMyServiceRunning(
@@ -78,8 +72,8 @@ fun contactExists(context: Context, number: String?): Boolean {
 }
 
 fun startNumberDetectionService(context: Context, number: String? = null, apiCallType: String = ApiCallType.CALL.name, message: String? = null, packageInfo: InstalledAppRequest? = null) {
-    if (!isMyServiceRunning(context, NumberDetectionService::class.java)) {
-        NumberDetectionService.startService(context, Intent(context, NumberDetectionService::class.java).apply {
+    if (!isMyServiceRunning(context, ValidationService::class.java)) {
+        ValidationService.startService(context, Intent(context, ValidationService::class.java).apply {
             putExtras(Bundle().apply {
                 putString(KEY_NUMBER, number)
                 putString(KEY_API_CALL_TYPE, apiCallType)

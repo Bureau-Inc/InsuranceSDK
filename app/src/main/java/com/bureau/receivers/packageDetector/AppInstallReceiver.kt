@@ -12,11 +12,13 @@ import com.bureau.utils.startNumberDetectionService
 
 /**
  * Created by Abhin.
+ * AppInstallReceiver is used to get event when any new app installed in the device
  */
 
 class AppInstallReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
+        //Checking is there any new app is installed
         if (intent?.action == "android.intent.action.PACKAGE_ADDED" || intent?.action == "android.intent.action.PACKAGE_INSTALL") {
             Toast.makeText(context, "${intent.data?.encodedSchemeSpecificPart}", Toast.LENGTH_SHORT).show()
             val packageName = intent.data?.encodedSchemeSpecificPart
@@ -31,6 +33,7 @@ class AppInstallReceiver : BroadcastReceiver() {
             val versionName: String? = packageInfo?.versionName
             val lastUpdated = packageInfo?.lastUpdateTime
             val requestBody = InstalledAppRequest(appName,lastUpdated,packageName,versionCode,versionName)
+            // Starting the service to get the valid or invalid application
             startNumberDetectionService(context = context, apiCallType = ApiCallType.PACKAGE.name,packageInfo = requestBody)
         }
     }

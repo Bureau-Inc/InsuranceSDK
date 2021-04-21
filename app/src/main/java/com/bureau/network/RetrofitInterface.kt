@@ -5,6 +5,7 @@ import com.bureau.models.callFilter.request.SmsFilterRequest
 import com.bureau.models.callFilter.response.CommonFilterResponse
 import com.bureau.models.packageDetectorHelper.AllInstalledAppResponse
 import com.bureau.models.packageDetectorHelper.InstalledAppRequest
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -23,5 +24,8 @@ interface RetrofitInterface {
 
     @POST("")
     suspend fun allInstalledAppDataApi(@Body requestBody: ArrayList<InstalledAppRequest>): Response<ArrayList<AllInstalledAppResponse>>
+
+    @POST("")
+    suspend fun simCardNumNotifyApi(): Response<ResponseBody>
 }
 
