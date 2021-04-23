@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit
  */
 open class NetworkInterceptor(context: Context) : Interceptor {
     private val appContext = context.applicationContext
+
     /**
      * Overridden method for intercept
      */

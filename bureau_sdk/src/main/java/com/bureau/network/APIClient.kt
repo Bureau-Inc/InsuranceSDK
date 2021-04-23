@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
  * Created by Abhin.
  * Api Client for retrofit Instance with Base Url
  */
-class APIClient(var context : Context) {
+class APIClient(var context: Context) {
 
     private var mRetrofit: Retrofit? = null
 
@@ -23,7 +23,9 @@ class APIClient(var context : Context) {
      */
     fun getClient(): RetrofitInterface {
         if (mRetrofit == null) {
-            mRetrofit = Retrofit.Builder().baseUrl(BASE_URL).client(getOkHttpClient()).addCallAdapterFactory(RxJava2CallAdapterFactory.create()).addConverterFactory(GsonConverterFactory.create(Gson())).build()
+            mRetrofit = Retrofit.Builder().baseUrl(BASE_URL).client(getOkHttpClient())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(Gson())).build()
         }
         return mRetrofit?.create(RetrofitInterface::class.java)!!
     }
@@ -36,6 +38,9 @@ class APIClient(var context : Context) {
         val originInterceptor = OriginHeaderInterceptor()
 
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
-        return OkHttpClient.Builder().connectTimeout(3, TimeUnit.MINUTES).readTimeout(90, TimeUnit.SECONDS).writeTimeout(45, TimeUnit.SECONDS).addInterceptor(originInterceptor).addInterceptor(loggingInterceptor).addNetworkInterceptor(NetworkInterceptor(context)).build()
+        return OkHttpClient.Builder().connectTimeout(3, TimeUnit.MINUTES)
+            .readTimeout(90, TimeUnit.SECONDS).writeTimeout(45, TimeUnit.SECONDS)
+            .addInterceptor(originInterceptor).addInterceptor(loggingInterceptor)
+            .addNetworkInterceptor(NetworkInterceptor(context)).build()
     }
 }

@@ -7,7 +7,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.bureau.R
 import java.util.*
 
 /**
@@ -60,7 +59,11 @@ class MarshMellowHelper {
         }
     }
 
-    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         if (requestCode == this.requestCode) {
             var denied = false
             for (grantResult in grantResults) {
@@ -73,15 +76,11 @@ class MarshMellowHelper {
                 val currentShowRational = shouldShowRational(permissions)
                 if (!showRational && !currentShowRational) {
                     if (mPermissionCallback != null) mPermissionCallback!!.onPermissionDeniedBySystem(
-                        mContext!!.getString(
-                            R.string.permission_denied_by_system
-                        )
+                        "Permission Denied By System"
                     )
                 } else {
                     if (mPermissionCallback != null) mPermissionCallback!!.onPermissionDenied(
-                        mContext!!.getString(
-                            R.string.permission_denied
-                        )
+                        "Permission Denied"
                     )
                 }
             } else {
@@ -103,7 +102,11 @@ class MarshMellowHelper {
     private fun filterNotGrantedPermission(permissions: Array<String>): Array<String> {
         val notGrantedPermission = ArrayList<String>()
         for (permission in permissions) {
-            if (ContextCompat.checkSelfPermission(getContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    getContext(),
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 notGrantedPermission.add(permission)
             }
         }
@@ -118,7 +121,11 @@ class MarshMellowHelper {
      */
     private fun checkSelfPermission(permissions: Array<String>): Boolean {
         for (permission in permissions) {
-            if (ContextCompat.checkSelfPermission(getContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    getContext(),
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 return false
             }
         }

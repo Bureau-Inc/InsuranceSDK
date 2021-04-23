@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.widget.Toast
-import com.bureau.models.packageDetectorHelper.InstalledAppRequest
+import com.bureau.models.packageDetectorHelper.AppList
 import com.bureau.utils.ApiCallType
 import com.bureau.utils.startNumberDetectionService
 
@@ -20,7 +20,8 @@ class AppInstallReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         //Checking is there any new app is installed
         if (intent?.action == "android.intent.action.PACKAGE_ADDED" || intent?.action == "android.intent.action.PACKAGE_INSTALL") {
-            Toast.makeText(context, "${intent.data?.encodedSchemeSpecificPart}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "${intent.data?.encodedSchemeSpecificPart}", Toast.LENGTH_SHORT)
+                .show()
             val packageName = intent.data?.encodedSchemeSpecificPart
             val packageManager = context?.packageManager!!
             val packageInfo = packageName?.let { packageManager.getPackageInfo(it, 0) }
@@ -32,9 +33,14 @@ class AppInstallReceiver : BroadcastReceiver() {
             }
             val versionName: String? = packageInfo?.versionName
             val lastUpdated = packageInfo?.lastUpdateTime
-            val requestBody = InstalledAppRequest(appName,lastUpdated,packageName,versionCode,versionName)
+            val requestBody =
+                AppList(appName, packageName, versionCode.toString(), versionName, lastUpdated)
             // Starting the service to get the valid or invalid application
-            startNumberDetectionService(context = context, apiCallType = ApiCallType.PACKAGE.name,packageInfo = requestBody)
+            startNumberDetectionService(
+                context = context,
+                apiCallType = ApiCallType.PACKAGE.name,
+                packageInfo = requestBody
+            )
         }
     }
 }
