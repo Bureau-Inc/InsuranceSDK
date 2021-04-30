@@ -8,12 +8,16 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.bureau.`interface`.UrlFilterInterface
+import com.bureau.models.Domains
 import com.bureau.models.callFilter.request.CallFilterRequest
 import com.bureau.network.APIClient
+import com.bureau.utils.*
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by Abhin.
@@ -21,9 +25,9 @@ import java.util.*
 class ASUrl : AccessibilityService() {
 
     private var isApiCall = false
+    private var preferenceManager: PreferenceManager? = null
 
     companion object {
-        private var isOneTimeApiCall = false
         var mUrlFilterInterface: UrlFilterInterface? = null
 
         fun initCallbacks(listener: UrlFilterInterface) {
@@ -55,6 +59,8 @@ class ASUrl : AccessibilityService() {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        preferenceManager =
+            PreferenceManager(this.getSharedPreferences(MY_PREFERENCE, MODE_PRIVATE))
         val source = event.source ?: return
         val packageName = source.packageName.toString()
         var browserConfig: SupportedBrowserConfig? = null
@@ -107,13 +113,46 @@ class ASUrl : AccessibilityService() {
                     url = addressBarNodeInfo.text.toString()
                 }
                 addressBarNodeInfo.recycle()
-                Log.e("TAG", url!!)
                 if (!isApiCall) {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        apiCallForCallFiltering("1234567890", "123456789")
-                    }
                     isApiCall = true
+                    if (!preferenceManager!!.getValue(PREF_STORED_DOMAIN_LIST, "")
+                            .isNullOrEmpty()
+                    ) {
+                        val storedDomainList: ArrayList<Domains> = convertObjectFromString(
+                            preferenceManager?.getValue(
+                                PREF_STORED_DOMAIN_LIST,
+                                ""
+                            ).toString()
+                        )
+                        if (!storedDomainList.isNullOrEmpty()) {
+                            if (storedDomainList.map { it.domain_name }
+                                    .contains(getHostName(url!!))) {
+                                Toast.makeText(
+                                    this@ASUrl,
+                                    "Found in local list : safeUrl ",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                mUrlFilterInterface?.safeUrl(url.toString())
+                            } else {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    apiCallForCallFiltering(
+                                        "1234567890",
+                                        "123456789",
+                                        url.toString()
+                                    )
+                                }
+
+                            }
+                        }
+                        isApiCall = false
+                    } else {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            apiCallForCallFiltering("1234567890", "123456789", url.toString())
+                        }
+                        isApiCall = false
+                    }
                 }
+
             }
         } catch (ex: StackOverflowError) {
             ex.printStackTrace()
@@ -125,36 +164,77 @@ class ASUrl : AccessibilityService() {
     override fun onInterrupt() {}
     class SupportedBrowserConfig(var packageName: String, var addressBarId: String)
 
-    private fun apiCallForCallFiltering(userNumber: String?, receiverNumber: String?) {
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                val apiCall = APIClient(this@ASUrl).getClient()
-                    .callFilterApi(CallFilterRequest(userNumber, receiverNumber))
-                if (apiCall.isSuccessful) {
-                    if (apiCall.body()?.warn != null && apiCall.body()?.warn!!) {
-                        Toast.makeText(this@ASUrl, "unSafeUrl", Toast.LENGTH_LONG)
-                            .show()
-                        mUrlFilterInterface?.unSafeUrl("url")
+    private suspend fun apiCallForCallFiltering(
+        userNumber: String?,
+        receiverNumber: String?,
+        url: String
+    ) {
+        try {
+            val apiCall = APIClient(this@ASUrl).getClient()
+                .callFilterApi(CallFilterRequest(userNumber, receiverNumber))
+            if (apiCall.isSuccessful) {
+                var list = ArrayList<Domains>()
+                if (apiCall.body()?.warn != null && apiCall.body()?.warn!!) {
+                    Toast.makeText(this@ASUrl, "unSafeUrl", Toast.LENGTH_LONG)
+                        .show()
+                    mUrlFilterInterface?.unSafeUrl("url")
+                    if (!preferenceManager?.getValue(PREF_STORED_DOMAIN_LIST, "").isNullOrEmpty()) {
+                        list = convertObjectFromString(
+                            preferenceManager?.getValue(
+                                PREF_STORED_DOMAIN_LIST,
+                                ""
+                            ).toString()
+                        )
+                        if (list.size < 100) {
+                            list.add(Domains(getHostName(url), is_valid = false))
+                        } else {
+                            list.removeAt(0)
+                            list.add(list.size - 1, Domains(getHostName(url), is_valid = false))
+                        }
+                        val set: Set<Domains> = HashSet(list)
+                        list.clear()
+                        list.addAll(set)
+                        preferenceManager?.setValue(PREF_STORED_DOMAIN_LIST, Gson().toJson(list))
                     } else {
-                        Toast.makeText(
-                            this@ASUrl,
-                            "safeUrl",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        mUrlFilterInterface?.safeUrl("url")
+                        list.add(Domains(getHostName(url), is_valid = false))
+                        preferenceManager?.setValue(
+                            PREF_STORED_DOMAIN_LIST,
+                            Gson().toJson(list)
+                        )
                     }
                 } else {
-                    Toast.makeText(
-                        this@ASUrl,
-                        "ApI Failure --> ${apiCall.body()}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this@ASUrl, "safeUrl", Toast.LENGTH_LONG).show()
+                    mUrlFilterInterface?.safeUrl("url")
+                    if (!preferenceManager?.getValue(PREF_STORED_DOMAIN_LIST, "").isNullOrEmpty()) {
+                        list = convertObjectFromString(
+                            preferenceManager?.getValue(
+                                PREF_STORED_DOMAIN_LIST,
+                                ""
+                            ).toString()
+                        )
+                        if (list.size < 100) {
+                            list.add(Domains(getHostName(url), is_valid = true))
+                        } else {
+                            list.removeAt(0)
+                            list.add(list.size - 1, Domains(getHostName(url), is_valid = true))
+                        }
+                        val set: Set<Domains> = HashSet(list)
+                        list.clear()
+                        list.addAll(set)
+                        preferenceManager?.setValue(PREF_STORED_DOMAIN_LIST, Gson().toJson(list))
+                    } else {
+                        list.add(Domains(getHostName(url), is_valid = true))
+                        preferenceManager?.setValue(PREF_STORED_DOMAIN_LIST, Gson().toJson(list))
+                    }
                 }
-                isApiCall = false
-            } catch (e: Exception) {
-                isApiCall = false
-                Toast.makeText(this@ASUrl, e.message, Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this@ASUrl, "ApI Failure --> ${apiCall.body()}", Toast.LENGTH_LONG)
+                    .show()
             }
+            isApiCall = false
+        } catch (e: Exception) {
+            isApiCall = false
+            e.printStackTrace()
         }
     }
 }

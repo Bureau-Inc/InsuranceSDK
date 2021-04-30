@@ -17,10 +17,14 @@ import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.bureau.models.Domains
 import com.bureau.models.packageDetectorHelper.AllInstalledAppResponse
 import com.bureau.models.packageDetectorHelper.AppList
 import com.bureau.models.packageDetectorHelper.InstalledAppRequest
 import com.bureau.services.ValidationService
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.net.URL
 
 
 /**
@@ -135,4 +139,18 @@ fun isAccessibilityServiceEnabled(context: Context, service: Class<out Accessibi
         ) return true
     }
     return false
+}
+
+//to get host from url string
+fun getHostName(inputUrl: String): String {
+    var url = inputUrl
+    if (!url.startsWith("http") && !url.startsWith("https")) {
+        url = "http://$inputUrl"
+    }
+    return URL(url).host
+}
+
+fun convertObjectFromString(json: String): ArrayList<Domains> {
+    val type = object : TypeToken<ArrayList<Domains>>() {}.type
+    return Gson().fromJson(json, type)
 }
