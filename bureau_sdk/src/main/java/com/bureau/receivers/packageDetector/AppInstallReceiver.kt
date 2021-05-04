@@ -6,8 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.widget.Toast
 import com.bureau.models.packageDetectorHelper.AppList
-import com.bureau.utils.ApiCallType
-import com.bureau.utils.startNumberDetectionService
+import com.bureau.utils.startAppFilteringService
 
 
 /**
@@ -36,11 +35,7 @@ class AppInstallReceiver : BroadcastReceiver() {
             val requestBody =
                 AppList(appName, packageName, versionCode.toString(), versionName, lastUpdated)
             // Starting the service to get the valid or invalid application
-            startNumberDetectionService(
-                context = context,
-                apiCallType = ApiCallType.PACKAGE.name,
-                packageInfo = requestBody
-            )
+            startAppFilteringService(context = context, packageInfo = requestBody)
         }
     }
 }

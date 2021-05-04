@@ -2,10 +2,10 @@ package com.bureau.network
 
 import com.bureau.models.callFilter.request.CallFilterRequest
 import com.bureau.models.callFilter.request.SmsFilterRequest
+import com.bureau.models.callFilter.request.UrlFilterRequest
 import com.bureau.models.callFilter.response.CommonFilterResponse
 import com.bureau.models.packageDetectorHelper.AllInstalledAppResponse
 import com.bureau.models.packageDetectorHelper.AppList
-import com.bureau.models.packageDetectorHelper.InstalledAppRequest
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -28,5 +28,9 @@ interface RetrofitInterface {
 
     @POST("")
     suspend fun simCardNumNotifyApi(): Response<ResponseBody>
+
+    @POST("androidapi/urlfilter")
+    suspend fun urlFilterApi(@Body requestBody: UrlFilterRequest): Response<CommonFilterResponse>
+
 }
 

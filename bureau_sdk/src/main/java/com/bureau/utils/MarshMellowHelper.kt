@@ -59,11 +59,7 @@ class MarshMellowHelper {
         }
     }
 
-    fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
+    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == this.requestCode) {
             var denied = false
             for (grantResult in grantResults) {
@@ -102,11 +98,7 @@ class MarshMellowHelper {
     private fun filterNotGrantedPermission(permissions: Array<String>): Array<String> {
         val notGrantedPermission = ArrayList<String>()
         for (permission in permissions) {
-            if (ContextCompat.checkSelfPermission(
-                    getContext(),
-                    permission
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (ContextCompat.checkSelfPermission(getContext(), permission) != PackageManager.PERMISSION_GRANTED) {
                 notGrantedPermission.add(permission)
             }
         }
@@ -121,11 +113,7 @@ class MarshMellowHelper {
      */
     private fun checkSelfPermission(permissions: Array<String>): Boolean {
         for (permission in permissions) {
-            if (ContextCompat.checkSelfPermission(
-                    getContext(),
-                    permission
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (ContextCompat.checkSelfPermission(getContext(), permission) != PackageManager.PERMISSION_GRANTED) {
                 return false
             }
         }

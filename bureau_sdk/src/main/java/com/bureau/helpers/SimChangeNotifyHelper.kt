@@ -7,16 +7,9 @@ import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.util.Log
-import android.widget.Toast
-import com.bureau.`interface`.ApplicationFilterInterface
-import com.bureau.models.packageDetectorHelper.AppList
-import com.bureau.network.APIClient
 import com.bureau.utils.MY_PREFERENCE
 import com.bureau.utils.PREF_SIM_SERIAL_NUM
 import com.bureau.utils.PreferenceManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class SimChangeNotifyHelper {
 
@@ -53,4 +46,35 @@ class SimChangeNotifyHelper {
             )
         }
     }
+
+//    private fun apiCallForSimChangeEvent(context: Context,) {
+//        CoroutineScope(Dispatchers.Main).launch {
+//            try {
+//                val apiCall = APIClient(context).getClient()
+//                    .allInstalledAppDataApi(allInstalledApps!!)
+//                if (apiCall.isSuccessful && apiCall.body() != null) {
+//                    Toast.makeText(
+//                        context,
+//                        "Api Success --> ",
+//                        Toast.LENGTH_LONG
+//                    ).show()
+//                    if (!apiCall.body().isNullOrEmpty()) {
+//                        val maliciousApps = apiCall.body()?.filter { it.warn == true }?.map { it.package_name } as ArrayList<String>
+//                        listener.maliciousApps(maliciousApps)
+//                        val commaSeparatedString = maliciousApps.joinToString(separator = ", ")
+//                        Toast.makeText(
+//                            context,
+//                            "Malicious Apps --> $commaSeparatedString ",
+//                            Toast.LENGTH_LONG
+//                        ).show()
+//                    }
+//                } else {
+//                    Toast.makeText(context, "ApI Failure --> ", Toast.LENGTH_LONG)
+//                        .show()
+//                }
+//            } catch (e: Exception) {
+//                Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+//            }
+//        }
+//    }
 }

@@ -55,8 +55,7 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
                     onCustomCallStateChanged(context, state, number)
                 } else {
                     // Android 9+, we can get state of call by an overridden method
-                    val telephony =
-                        context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+                    val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
                     telephony.listen(object : PhoneStateListener() {
                         override fun onCallStateChanged(state: Int, number: String) {
                             //Calling the state changed
@@ -73,19 +72,9 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
 
     protected abstract fun onOutgoingCallStarted(context: Context?, number: String?, start: Date?)
 
-    protected abstract fun onIncomingCallEnded(
-        context: Context?,
-        number: String?,
-        start: Date?,
-        end: Date?
-    )
+    protected abstract fun onIncomingCallEnded(context: Context?, number: String?, start: Date?, end: Date?)
 
-    protected abstract fun onOutgoingCallEnded(
-        context: Context?,
-        number: String?,
-        start: Date?,
-        end: Date?
-    )
+    protected abstract fun onOutgoingCallEnded(context: Context?, number: String?, start: Date?, end: Date?)
 
     protected abstract fun onMissedCall(context: Context?, number: String?, missed: Date?)
 

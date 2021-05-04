@@ -52,31 +52,24 @@ class PreferenceManager(private val mSharedPreferences: SharedPreferences) {
      *
      * @param defaultValue Default value for the key, if one is not found.
      */
-    fun getValue(key: String, defaultValue: String): String? =
-        mSharedPreferences.getString(key, defaultValue)
+    fun getValue(key: String, defaultValue: String): String? = mSharedPreferences.getString(key, defaultValue)
 
-    fun getIntValue(key: String, defaultValue: Int): Int =
-        mSharedPreferences.getInt(key, defaultValue)
+    fun getIntValue(key: String, defaultValue: Int): Int = mSharedPreferences.getInt(key, defaultValue)
 
-    fun getLongValue(key: String, defaultValue: Long): Long =
-        mSharedPreferences.getLong(key, defaultValue)
+    fun getLongValue(key: String, defaultValue: Long): Long = mSharedPreferences.getLong(key, defaultValue)
 
-    fun getBooleanValue(key: String, defaultValue: Boolean): Boolean =
-        mSharedPreferences.getBoolean(key, defaultValue)
+    fun getBooleanValue(key: String, defaultValue: Boolean): Boolean = mSharedPreferences.getBoolean(key, defaultValue)
 
-    fun getFloatValue(key: String, defaultValue: Float): Float =
-        mSharedPreferences.getFloat(key, defaultValue)
+    fun getFloatValue(key: String, defaultValue: Float): Float = mSharedPreferences.getFloat(key, defaultValue)
 
-    fun getStringSet(key: String, defaultValue: Set<String>): Set<String>? =
-        mSharedPreferences.getStringSet(key, defaultValue)
+    fun getStringSet(key: String, defaultValue: Set<String>): Set<String>? = mSharedPreferences.getStringSet(key, defaultValue)
 
     /**
      * Gets the value from the preferences stored natively on the device.
      *
      * @param defValue Default value for the key, if one is not found.
      */
-    fun getValue(key: String, defValue: Boolean): Boolean =
-        mSharedPreferences.getBoolean(key, defValue)
+    fun getValue(key: String, defValue: Boolean): Boolean = mSharedPreferences.getBoolean(key, defValue)
 
     fun setValue(key: String, value: Boolean) {
         val editor = mSharedPreferences.edit()

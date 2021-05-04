@@ -7,7 +7,7 @@ import okhttp3.Response
 /**
  * Created by Abhin.
  */
-class OriginHeaderInterceptor() : Interceptor {
+class OriginHeaderInterceptor() : Interceptor{
 
     override fun intercept(chain: Interceptor.Chain): Response = chain.run {
         val builder: Request.Builder = request().newBuilder()

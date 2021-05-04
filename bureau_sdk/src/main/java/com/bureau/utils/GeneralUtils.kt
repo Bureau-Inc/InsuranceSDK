@@ -13,24 +13,24 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract.PhoneLookup
-import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.bureau.models.Domains
-import com.bureau.models.packageDetectorHelper.AllInstalledAppResponse
 import com.bureau.models.packageDetectorHelper.AppList
-import com.bureau.models.packageDetectorHelper.InstalledAppRequest
-import com.bureau.services.ValidationService
+import com.bureau.services.AppFilteringService
+import com.bureau.services.CallFilteringService
+import com.bureau.services.SmsFilteringService
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.net.URL
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 
 
 /**
  * Created by Abhin.
  */
-
 
 
 // check the service are running or not
@@ -47,7 +47,15 @@ fun isMyServiceRunning(
     return false
 }
 
-val phoneCallPermission = arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.CALL_PHONE, Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_BOOT_COMPLETED, Manifest.permission.PROCESS_OUTGOING_CALLS, Manifest.permission.RECEIVE_SMS)
+val phoneCallPermission = arrayOf(
+    Manifest.permission.READ_CONTACTS,
+    Manifest.permission.READ_PHONE_STATE,
+    Manifest.permission.CALL_PHONE,
+    Manifest.permission.READ_SMS,
+    Manifest.permission.RECEIVE_BOOT_COMPLETED,
+    Manifest.permission.PROCESS_OUTGOING_CALLS,
+    Manifest.permission.RECEIVE_SMS
+)
 
 fun hasPermissions(
     context: Context?,
@@ -70,7 +78,11 @@ fun hasPermissions(
 fun contactExists(context: Context, number: String?): Boolean {
     /// number is the phone number
     val lookupUri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number))
-    val mPhoneNumberProjection = arrayOf(PhoneLookup._ID, PhoneLookup.NUMBER, PhoneLookup.DISPLAY_NAME)
+    val mPhoneNumberProjection = arrayOf(
+        PhoneLookup._ID,
+        PhoneLookup.NUMBER,
+        PhoneLookup.DISPLAY_NAME
+    )
     val cur = context.contentResolver.query(lookupUri, mPhoneNumberProjection, null, null, null)
     cur.use { cursor ->
         if (cursor!!.moveToFirst()) {
@@ -81,16 +93,50 @@ fun contactExists(context: Context, number: String?): Boolean {
     return false
 }
 
-fun startNumberDetectionService(context: Context, number: String? = null, apiCallType: String = ApiCallType.CALL.name, message: String? = null, packageInfo: AppList? = null) {
-    if (!isMyServiceRunning(context, ValidationService::class.java)) {
-        ValidationService.startService(context, Intent(context, ValidationService::class.java).apply {
-            putExtras(Bundle().apply {
-                putString(KEY_NUMBER, number)
-                putString(KEY_API_CALL_TYPE, apiCallType)
-                putString(KEY_SMS_BODY, message)
-                putParcelable(KEY_PACKAGE_DATA, packageInfo)
+fun startAppFilteringService(
+    context: Context,
+    packageInfo: AppList? = null
+) {
+    if (!isMyServiceRunning(context, AppFilteringService::class.java)) {
+        AppFilteringService.startAppFilteringService(
+            context,
+            Intent(context, AppFilteringService::class.java).apply {
+                putExtras(Bundle().apply {
+                    putParcelable(KEY_PACKAGE_DATA, packageInfo)
+                })
             })
-        })
+    }
+}
+
+fun startSmsFilteringService(
+    context: Context,
+    number: String? = null,
+    message: String? = null
+) {
+    if (!isMyServiceRunning(context, SmsFilteringService::class.java)) {
+        SmsFilteringService.startSmsFilteringService(
+            context,
+            Intent(context, SmsFilteringService::class.java).apply {
+                putExtras(Bundle().apply {
+                    putString(KEY_NUMBER, number)
+                    putString(KEY_SMS_BODY, message)
+                })
+            })
+    }
+}
+
+fun startCallFilteringService(
+    context: Context,
+    number: String? = null
+) {
+    if (!isMyServiceRunning(context, CallFilteringService::class.java)) {
+        CallFilteringService.startCallFilteringService(
+            context,
+            Intent(context, CallFilteringService::class.java).apply {
+                putExtras(Bundle().apply {
+                    putString(KEY_NUMBER, number)
+                })
+            })
     }
 }
 
@@ -104,7 +150,6 @@ fun getInstalledAppsPackageNames(context: Context): ArrayList<AppList> {
         // for filter the system apps : put below code in if (!isSystemPackage(p)) { }
         val appName = p.loadLabel(packageManager).toString()
         val pInfo = packageManager.getPackageInfo(p.packageName, 0)
-        Log.e("TAG","$pInfo")
         val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             pInfo.longVersionCode.toInt()
         } else {
@@ -126,7 +171,10 @@ private fun isSystemPackage(appInfo: ApplicationInfo): Boolean {
 }
 
 // To check if AccessibilityService is enabled
-fun isAccessibilityServiceEnabled(context: Context, service: Class<out AccessibilityService?>): Boolean {
+fun isAccessibilityServiceEnabled(
+    context: Context,
+    service: Class<out AccessibilityService?>
+): Boolean {
     val accessibilityManager =
         context.getSystemService(AppCompatActivity.ACCESSIBILITY_SERVICE) as AccessibilityManager
     val enabledServices =
@@ -148,6 +196,29 @@ fun getHostName(inputUrl: String): String {
         url = "http://$inputUrl"
     }
     return URL(url).host
+}
+
+
+fun getMd5HashId(s: String): String {
+    try {
+        // Create MD5 Hash
+        val digest: MessageDigest = MessageDigest
+            .getInstance(MD5)
+        digest.update(s.toByteArray())
+        val messageDigest: ByteArray = digest.digest()
+
+        // Create Hex String
+        val hexString = StringBuilder()
+        for (aMessageDigest in messageDigest) {
+            var h = Integer.toHexString(0xFF and aMessageDigest.toInt())
+            while (h.length < 2) h = "0$h"
+            hexString.append(h)
+        }
+        return hexString.toString()
+    } catch (e: NoSuchAlgorithmException) {
+        e.printStackTrace()
+    }
+    return ""
 }
 
 fun convertObjectFromString(json: String): ArrayList<Domains> {

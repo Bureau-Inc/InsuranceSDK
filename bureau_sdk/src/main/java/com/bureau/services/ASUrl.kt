@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.bureau.`interface`.UrlFilterInterface
 import com.bureau.models.Domains
-import com.bureau.models.callFilter.request.CallFilterRequest
+import com.bureau.models.callFilter.request.UrlFilterRequest
 import com.bureau.network.APIClient
 import com.bureau.utils.*
 import com.google.gson.Gson
@@ -113,6 +113,7 @@ class ASUrl : AccessibilityService() {
                     url = addressBarNodeInfo.text.toString()
                 }
                 addressBarNodeInfo.recycle()
+                Log.e("TAG", url!!)
                 if (!isApiCall) {
                     isApiCall = true
                     if (!preferenceManager!!.getValue(PREF_STORED_DOMAIN_LIST, "")
@@ -126,20 +127,21 @@ class ASUrl : AccessibilityService() {
                         )
                         if (!storedDomainList.isNullOrEmpty()) {
                             if (storedDomainList.map { it.domain_name }
-                                    .contains(getHostName(url!!))) {
-                                Toast.makeText(
-                                    this@ASUrl,
-                                    "Found in local list : safeUrl ",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                mUrlFilterInterface?.safeUrl(url.toString())
+                                    .contains(getHostName(url))) {
+                                val domainIsValidOrNot = storedDomainList.find {
+                                    it.domain_name == getHostName(url)
+                                }?.is_valid
+                                if (domainIsValidOrNot == false) {
+                                    Toast.makeText(
+                                        this@ASUrl,
+                                        "Found in local list : Url is UnSafeUrl",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    mUrlFilterInterface?.unSafeUrlWarning(url.toString(),"UnSafeUrl")
+                                }
                             } else {
                                 CoroutineScope(Dispatchers.Main).launch {
-                                    apiCallForCallFiltering(
-                                        "1234567890",
-                                        "123456789",
-                                        url.toString()
-                                    )
+                                    apiCallForUrlFiltering(url.toString())
                                 }
 
                             }
@@ -147,7 +149,7 @@ class ASUrl : AccessibilityService() {
                         isApiCall = false
                     } else {
                         CoroutineScope(Dispatchers.Main).launch {
-                            apiCallForCallFiltering("1234567890", "123456789", url.toString())
+                            apiCallForUrlFiltering(url.toString())
                         }
                         isApiCall = false
                     }
@@ -164,20 +166,16 @@ class ASUrl : AccessibilityService() {
     override fun onInterrupt() {}
     class SupportedBrowserConfig(var packageName: String, var addressBarId: String)
 
-    private suspend fun apiCallForCallFiltering(
-        userNumber: String?,
-        receiverNumber: String?,
-        url: String
-    ) {
+    private suspend fun apiCallForUrlFiltering(url: String) {
         try {
             val apiCall = APIClient(this@ASUrl).getClient()
-                .callFilterApi(CallFilterRequest(userNumber, receiverNumber))
+                .urlFilterApi(UrlFilterRequest(getHostName(url)))
             if (apiCall.isSuccessful) {
                 var list = ArrayList<Domains>()
                 if (apiCall.body()?.warn != null && apiCall.body()?.warn!!) {
-                    Toast.makeText(this@ASUrl, "unSafeUrl", Toast.LENGTH_LONG)
+                    Toast.makeText(this@ASUrl, "unSafeUrl : ${getHostName(url)}", Toast.LENGTH_LONG)
                         .show()
-                    mUrlFilterInterface?.unSafeUrl("url")
+                    mUrlFilterInterface?.unSafeUrlWarning("url","unSafeUrl")
                     if (!preferenceManager?.getValue(PREF_STORED_DOMAIN_LIST, "").isNullOrEmpty()) {
                         list = convertObjectFromString(
                             preferenceManager?.getValue(
@@ -203,8 +201,6 @@ class ASUrl : AccessibilityService() {
                         )
                     }
                 } else {
-                    Toast.makeText(this@ASUrl, "safeUrl", Toast.LENGTH_LONG).show()
-                    mUrlFilterInterface?.safeUrl("url")
                     if (!preferenceManager?.getValue(PREF_STORED_DOMAIN_LIST, "").isNullOrEmpty()) {
                         list = convertObjectFromString(
                             preferenceManager?.getValue(

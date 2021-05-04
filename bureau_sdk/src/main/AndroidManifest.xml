@@ -20,13 +20,13 @@
 
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"/>
 
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="true" />
 
-    <application
-        android:usesCleartextTraffic="true">
+    <application>
         <receiver
             android:name="com.bureau.receivers.call.CallReceiver"
             android:enabled="true"
@@ -50,7 +50,15 @@
         </receiver>
 
         <service
-            android:name="com.bureau.services.ValidationService"
+            android:name="com.bureau.services.AppFilteringService"
+            android:exported="true" />
+
+        <service
+            android:name="com.bureau.services.SmsFilteringService"
+            android:exported="true" />
+
+        <service
+            android:name="com.bureau.services.CallFilteringService"
             android:exported="true" />
 
         <receiver
