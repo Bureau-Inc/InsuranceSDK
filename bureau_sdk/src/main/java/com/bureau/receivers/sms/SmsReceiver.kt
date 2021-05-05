@@ -4,9 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.SmsMessage
-import com.bureau.utils.MY_PREFERENCE
-import com.bureau.utils.PreferenceManager
-import com.bureau.utils.startSmsFilteringService
+import com.bureau.utils.*
 
 
 /**

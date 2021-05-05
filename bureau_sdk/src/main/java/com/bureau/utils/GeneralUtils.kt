@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract.PhoneLookup
+import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -150,6 +151,7 @@ fun getInstalledAppsPackageNames(context: Context): ArrayList<AppList> {
         // for filter the system apps : put below code in if (!isSystemPackage(p)) { }
         val appName = p.loadLabel(packageManager).toString()
         val pInfo = packageManager.getPackageInfo(p.packageName, 0)
+        Log.e("TAG", "$pInfo")
         val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             pInfo.longVersionCode.toInt()
         } else {

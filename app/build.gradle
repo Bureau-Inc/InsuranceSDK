@@ -1,8 +1,6 @@
 plugins {
-    id 'com.android.library'
+    id 'com.android.application'
     id 'kotlin-android'
-    id 'kotlin-android-extensions'
-    id 'maven-publish'
 }
 
 android {
@@ -10,11 +8,12 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
+        applicationId "com.example.myapplication_test"
         minSdkVersion 16
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -33,28 +32,6 @@ android {
     }
 }
 
-publishing {
-    publications {
-        aar(MavenPublication) {
-            groupId "com.bureau"
-            version "1.1.1"
-            artifactId "awesome"
-
-            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
-
-            pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
-                configurations.implementation.allDependencies.each { dependency ->
-                    final dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', dependency.group)
-                    dependencyNode.appendNode('artifactId', dependency.name)
-                    dependencyNode.appendNode('version', dependency.version)
-                }
-            }
-        }
-    }
-}
-
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -65,19 +42,4 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-
-    implementation 'com.google.android.gms:play-services-auth-api-phone:17.5.0'
-
-    //  Retrofit
-    implementation "com.squareup.retrofit2:retrofit:2.9.0"
-    implementation "com.squareup.retrofit2:converter-gson:2.6.1"
-    implementation "com.squareup.retrofit2:adapter-rxjava2:2.6.1"
-
-    // okHttp
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.8.0'
-
-    //Coroutines and ViewModel and LiveData
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-beta01'
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.2.0"
 }
